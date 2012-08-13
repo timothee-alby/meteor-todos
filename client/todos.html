@@ -44,7 +44,11 @@
   {{#if any_list_selected}}
   <div id="items-view">
     <div id="new-todo-box">
-      <input type="text" id="new-todo" placeholder="New item" />
+      <input type="text" id="new-todo-task" placeholder="Task" />
+      <input type="text" id="new-todo-date1" class="new-todo-date" placeholder="Date1" />
+      <input type="text" id="new-todo-date2" class="new-todo-date" placeholder="Date2" />
+      <input type="button" id="new-todo-create" class="new-todo-button" value="Create" />
+      <a id="new-todo-clear" class="new-todo-button">clear</a>
     </div>
     <ul id="item-list">
       {{#each todos}}

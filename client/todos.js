@@ -136,20 +136,44 @@ Template.todos.any_list_selected = function () {
 
 Template.todos.events = {};
 
-Template.todos.events[ okcancel_events('#new-todo') ] =
-  make_okcancel_handler({
-    ok: function (text, evt) {
-      var tag = Session.get('tag_filter');
-      Todos.insert({
-        text: text,
-        list_id: Session.get('list_id'),
-        done: false,
-        timestamp: (new Date()).getTime(),
-        tags: tag ? [tag] : []
-      });
-      evt.target.value = '';
-    }
-  });
+// Template.todos.events[ okcancel_events('#new-todo') ] =
+//   make_okcancel_handler({
+//     ok: function (text, evt) {
+//       var tag = Session.get('tag_filter');
+//       var date1 = document.getElementById('new-todo-date1').value;
+//       console.log(date1);
+//       Todos.insert({
+//         text: text,
+//         list_id: Session.get('list_id'),
+//         done: false,
+//         timestamp: (new Date()).getTime(),
+//         tags: tag ? [tag] : []
+//       });
+//       evt.target.value = '';
+//     }
+//   });
+
+Template.todos.events = {
+  'keydown #new-todo-task' : function () {
+    console.log("change");
+    var create = document.getElementById('new-todo-create');
+    var clear = document.getElementById('new-todo-clear');
+    create.style.display = 'inline';
+    clear.style.display = 'inline';
+  },
+  'click #new-todo-create': function () {
+    console.log("click");
+    //Todos.update(this._id, {$set: {done: !this.done}});
+  },
+  'click #new-todo-clear': function () {
+    var task = document.getElementById('new-todo-task');
+    var date1 = document.getElementById('new-todo-date1');
+    var date2 = document.getElementById('new-todo-date2');
+    task.value = "";
+    date1.value = "";
+    date2.value = "";
+  }
+}
 
 Template.todos.todos = function () {
   // Determine which todos to display in main pane,

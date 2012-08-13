@@ -151,10 +151,18 @@ h3 {
     position: relative;
     height: 40px;
 }
-
+.new-todo-button{
+    display: none;
+}
 #new-todo {
-   position: absolute;
-   width: 100%;
+   /*position: absolute;
+   width: 100%;*/
+}
+.new-todo-date{
+    width:20%;
+}
+#new-todo-clear{
+    cursor: pointer;
 }
 
 #items-view {
