@@ -149,19 +149,26 @@ h3 {
     margin-right: 20px;
     font-size: 160%;
     position: relative;
-    height: 40px;
-}
-.new-todo-button{
+/*    height: 80px;
+*/}
+
+#new-todo-hidden-div{
     display: none;
 }
-#new-todo {
-   /*position: absolute;
-   width: 100%;*/
+#new-todo-task {
+   /*position: absolute;*/
+   width: 100%;
 }
 .new-todo-date{
     width:20%;
 }
 #new-todo-clear{
+    cursor: pointer;
+}
+
+/* view selector
+*/
+.viewsSwicher{
     cursor: pointer;
 }
 
@@ -200,6 +207,14 @@ h3 {
     width: 300px;
     position: relative;
     top: -3px;
+}
+
+.todo-timeLeft{
+    text-decoration: underline;
+}
+
+.todo-timeLeft-0{
+    color: red;
 }
 
 #item-list .done .todo-text {

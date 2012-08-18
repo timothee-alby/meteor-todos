@@ -1,5 +1,7 @@
 <head>
   <title>Do It!</title>
+<!--     <link href="/public/datepicker/css/datepicker.css" rel="stylesheet" type="text/css" />
+ -->    
 </head>
 
 <body>
@@ -45,21 +47,48 @@
   <div id="items-view">
     <div id="new-todo-box">
       <input type="text" id="new-todo-task" placeholder="Task" />
-      <input type="text" id="new-todo-date1" class="new-todo-date" placeholder="Date1" />
-      <input type="text" id="new-todo-date2" class="new-todo-date" placeholder="Date2" />
-      <input type="button" id="new-todo-create" class="new-todo-button" value="Create" />
-      <a id="new-todo-clear" class="new-todo-button">clear</a>
+      <div id="new-todo-hidden-div">
+        <select type="text" id="new-todo-duration" class="new-todo-hidden-parts">
+          <option>1</option>
+          <option>2</option>
+          <option>3</option>
+          <option>5</option>
+          <option>10</option>
+          <option>15</option>
+          <option>30</option>
+          <option>45</option>
+          <option>60</option>
+          <option>90</option>
+        </select>
+        <select type="text" id="new-todo-duration-unit" class="new-todo-hidden-parts">
+          <option>min</option>
+          <option>h</option>
+        </select>
+        <input type="text" id="new-todo-date1" class="new-todo-hidden-parts new-todo-date" placeholder="Due date" />
+        <!--<input type="text" id="new-todo-date2" class="new-todo-hidden-parts new-todo-date" placeholder="Deadline" />-->
+        <input type="button" id="new-todo-create" class="new-todo-hidden-parts new-todo-button" value="Create" />
+        <a id="new-todo-clear" class="new-todo-hidden-parts new-todo-button">clear</a>
+      </div>
     </div>
-    <ul id="item-list">
-      {{#each todos}}
-        {{> todo_item}}
-      {{/each}}
-    </ul>
+    <a class="viewsSwicher">{{listViewOrSpecialView}}</a>
+
+    {{#if isListView}}
+      <ul id="item-list">
+        {{#each todos}}
+          {{> todo_item}}
+        {{/each}}
+      </ul>
+    {{else}}
+      <div>
+      {{> todo_SpecialView}}
+      </div>
+    {{/if}}
   </div>
   {{/if}}
 </template>
 
 <template name="todo_item">
+<div id="todo_items">
   <li class="todo {{done_class}}">
     {{#if editing}}
       <div class="edit">
@@ -69,7 +98,10 @@
       <div class="destroy"></div>
       <div class="display">
         <input class="check" name="markdone" type="checkbox" {{{done_checkbox}}} />
-        <div class="todo-text">{{text}}</div>
+        <div class="todo-text">{{text}}
+          <span class="todo-timeLeft todo-timeLeft-{{date_gobalDaysLeft date_objs.daysLeft}}">{{date_daysLeftText date_objs.daysLeft}}</span>
+          <span class="todo-duration">({{duration}} {{duration_unit}})</span>
+        </div>
       </div>
     {{/if}}
     <div class="item-tags">
@@ -90,8 +122,15 @@
       {{/if}}
     </div>
   </li>
+</div>
 </template>
+<template name="todo_SpecialView">
 
+<span>Nombre de tâches : {{totalTasks 0}} ({{totalTasks 86400}} today)</span>
+<br />
+<span>Temps total : {{totalTime 0}} ({{totalTime 86400}} today)</span>
+
+</template>
 <template name="tag_filter">
   <div id="tag-filter" class="tag-list">
     <div class="label">Show:</div>

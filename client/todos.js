@@ -19,6 +19,9 @@ Session.set('editing_listname', null);
 // When editing todo text, ID of the todo
 Session.set('editing_itemname', null);
 
+// Set the view
+Session.set('isListView', false);
+
 
 // Subscribe to 'lists' collection on startup.
 // Select a list once data has arrived.
@@ -154,15 +157,46 @@ Template.todos.events = {};
 //   });
 
 Template.todos.events = {
-  'keydown #new-todo-task' : function () {
-    console.log("change");
-    var create = document.getElementById('new-todo-create');
-    var clear = document.getElementById('new-todo-clear');
-    create.style.display = 'inline';
-    clear.style.display = 'inline';
+  'focus #new-todo-task' : function () {
+    // var elts = document.getElementsByClassName('new-todo-hidden-parts');
+    // for(var i=0;i<elts.length;i++)
+    //   elts[i].style.display = 'inline';
+    var hiddenDiv = document.getElementById('new-todo-hidden-div');
+    hiddenDiv.style.display = 'inline';
+  },
+  'focus #new-todo-date1' : function () {
+    datePickerController.show('new-todo-date1');
+  },
+  'blur #new-todo-date1' : function () {
+    datePickerController.hide('new-todo-date1');
+  },
+  'focus #new-todo-date2' : function () {
+    datePickerController.show('new-todo-date2');
+  },
+  'blur #new-todo-date2' : function () {
+    datePickerController.hide('new-todo-date2');
   },
   'click #new-todo-create': function () {
-    console.log("click");
+    var task = document.getElementById('new-todo-task');
+    var date = document.getElementById('new-todo-date1');
+    date=date.value.split("/");
+    date=new Date(2000 + parseInt(date[2],10),parseInt(date[1],10)-1,date[0]);
+    var duration = document.getElementById('new-todo-duration');
+    var duration_unit = document.getElementById('new-todo-duration-unit');
+    var tag = Session.get('tag_filter');
+    // console.log(date1);
+    Todos.insert({
+      text: task.value,
+      list_id: Session.get('list_id'),
+      done: false,
+      date: date.getTime(),
+      duration: duration.value,
+      duration_unit: duration_unit.value,
+      timestamp: (new Date()).getTime(),
+      tags: tag ? [tag] : []
+    });
+    evt.target.value = '';
+
     //Todos.update(this._id, {$set: {done: !this.done}});
   },
   'click #new-todo-clear': function () {
@@ -172,6 +206,9 @@ Template.todos.events = {
     task.value = "";
     date1.value = "";
     date2.value = "";
+  },
+  'click .viewsSwicher': function () {
+    Session.set('isListView', !Session.get('isListView'));
   }
 }
 
@@ -191,12 +228,52 @@ Template.todos.todos = function () {
   return Todos.find(sel, {sort: {timestamp: 1}});
 };
 
+// Views  selector
+Template.todos.listViewOrSpecialView = function () {
+  if (Session.equals('isListView', true))
+    return "Swich to Special view";
+  else
+    return "Swich to List view";
+};
+Template.todos.isListView = function () {
+  return Session.equals('isListView', true);
+};
+
 Template.todo_item.tag_objs = function () {
   var todo_id = this._id;
   return _.map(this.tags || [], function (tag) {
     return {todo_id: todo_id, tag: tag};
   });
 };
+Template.todo_item.date_objs = function () {
+  // var myDate1=this.date1.split("/");
+  // myDate1=new Date(2000 + parseInt(myDate1[2],10),parseInt(myDate1[1],10)-1,myDate1[0]);
+
+  // var daysLeft1 = myDate1.getTime() - (new Date()).getTime();
+  var daysLeft = this.date - (new Date()).getTime();
+  daysLeft = Math.ceil(daysLeft/86400000);
+
+  return {daysLeft: daysLeft};
+};
+
+Template.todo_item.date_gobalDaysLeft = function (daysLeft) {
+  if(daysLeft>10)
+    return 10;
+  if(daysLeft>3)
+    return 3;
+  if(daysLeft>1)
+    return 1;
+  return 0;
+};
+
+Template.todo_item.date_daysLeftText = function (daysLeft) {
+  if(daysLeft>0)
+    return daysLeft + " days left";
+  if(daysLeft<0)
+    return Math.abs(daysLeft) + " days late";
+  return "Due today";
+};
+
 
 Template.todo_item.done_class = function () {
   return this.done ? 'done' : '';
@@ -269,6 +346,38 @@ Template.todo_item.events[ okcancel_events('#edittag-input') ] =
       Session.set('editing_addtag', null);
     }
   });
+
+
+////////// Special view //////////
+Template.todo_SpecialView.totalTasks = function (untilWhen) {
+  var totalTasks = 0;
+  Todos.find({list_id: Session.get('list_id')}).forEach(function (todo) {
+    var secondsLeft = (todo.date - (new Date()).getTime()) / 1000;
+
+    if(untilWhen==0 || secondsLeft<untilWhen )
+        totalTasks ++
+  });
+
+  return totalTasks;
+};
+
+Template.todo_SpecialView.totalTime = function (untilWhen) {
+  var totalTime = 0;
+  Todos.find({list_id: Session.get('list_id')}).forEach(function (todo) {
+    var secondsLeft = (todo.date - (new Date()).getTime()) / 1000;
+
+    if(untilWhen==0 || secondsLeft<untilWhen ){
+      if(todo.duration_unit == "h")
+        totalTime += parseInt(todo.duration) * 60;
+      else if(todo.duration_unit == "min")
+        totalTime += parseInt(todo.duration);
+    }
+  });
+
+  var totalHours = Math.floor(totalTime / 60);
+  var totalMinutes = totalTime-totalHours*60;
+  return totalHours+"h"+totalMinutes+"min";
+};
 
 ////////// Tag Filter //////////
 
