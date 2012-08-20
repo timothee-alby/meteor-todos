@@ -119,6 +119,8 @@ Template.lists.events[ okcancel_events('#new-list') ] =
     }
   });
 
+
+
 Template.lists.selected = function () {
   return Session.equals('list_id', this._id) ? 'selected' : '';
 };
@@ -139,7 +141,9 @@ Template.todos.any_list_selected = function () {
 
 Template.todos.events = {};
 
-// Template.todos.events[ okcancel_events('#new-todo') ] =
+
+
+// Template.todos.events[ okcancel_events('#new-todo-task') ] =
 //   make_okcancel_handler({
 //     ok: function (text, evt) {
 //       var tag = Session.get('tag_filter');
@@ -155,62 +159,100 @@ Template.todos.events = {};
 //       evt.target.value = '';
 //     }
 //   });
+// Template.todos.events[ okcancel_events('#new-todo-task') ] =
+//   make_okcancel_handler({
+//     ok: function (text, evt) {
+//       // var tag = Session.get('tag_filter');
+//       // var date1 = document.getElementById('new-todo-date1').value;
+//       console.log("create Task");
+//       // Todos.insert({
+//       //   text: text,
+//       //   list_id: Session.get('list_id'),
+//       //   done: false,
+//       //   timestamp: (new Date()).getTime(),
+//       //   tags: tag ? [tag] : []
+//       // });
+//       // evt.target.value = '';
+//     }
+//   });
 
 Template.todos.events = {
   'focus #new-todo-task' : function () {
-    // var elts = document.getElementsByClassName('new-todo-hidden-parts');
-    // for(var i=0;i<elts.length;i++)
-    //   elts[i].style.display = 'inline';
     var hiddenDiv = document.getElementById('new-todo-hidden-div');
     hiddenDiv.style.display = 'inline';
   },
-  'focus #new-todo-date1' : function () {
-    datePickerController.show('new-todo-date1');
+  'focus #new-todo-date' : function () {
+    datePickerController.show('new-todo-date');
   },
-  'blur #new-todo-date1' : function () {
-    datePickerController.hide('new-todo-date1');
-  },
-  'focus #new-todo-date2' : function () {
-    datePickerController.show('new-todo-date2');
-  },
-  'blur #new-todo-date2' : function () {
-    datePickerController.hide('new-todo-date2');
+  'blur #new-todo-date' : function () {
+    datePickerController.hide('new-todo-date');
   },
   'click #new-todo-create': function () {
-    var task = document.getElementById('new-todo-task');
-    var date = document.getElementById('new-todo-date1');
-    date=date.value.split("/");
-    date=new Date(2000 + parseInt(date[2],10),parseInt(date[1],10)-1,date[0]);
-    var duration = document.getElementById('new-todo-duration');
-    var duration_unit = document.getElementById('new-todo-duration-unit');
-    var tag = Session.get('tag_filter');
-    // console.log(date1);
-    Todos.insert({
-      text: task.value,
-      list_id: Session.get('list_id'),
-      done: false,
-      date: date.getTime(),
-      duration: duration.value,
-      duration_unit: duration_unit.value,
-      timestamp: (new Date()).getTime(),
-      tags: tag ? [tag] : []
-    });
-    evt.target.value = '';
-
-    //Todos.update(this._id, {$set: {done: !this.done}});
+    create_task();
   },
   'click #new-todo-clear': function () {
-    var task = document.getElementById('new-todo-task');
-    var date1 = document.getElementById('new-todo-date1');
-    var date2 = document.getElementById('new-todo-date2');
-    task.value = "";
-    date1.value = "";
-    date2.value = "";
+      cancel_create_task();    
   },
   'click .viewsSwicher': function () {
     Session.set('isListView', !Session.get('isListView'));
+  },
+  'keypress #new-todo-task, keypress #new-todo-duration, keypress #new-todo-duration-unit, keypress #new-todo-date': function (event) {
+    console.log(event);
+    console.log(event.keyCode);
+    if(event.keyCode == 13) {
+      create_task();
+    }
+    else if(event.keyCode == 27) {
+      cancel_create_task();
+    }
   }
 }
+
+var create_task = function () {
+  console.log("create");
+  var task = document.getElementById('new-todo-task');
+  var date = document.getElementById('new-todo-date');
+  if(date.value.match(/\d\d\/\d\d\/\d\d/) != null){
+    date = date.value.split("/");
+    date = new Date(2000 + parseInt(date[2],10),parseInt(date[1],10)-1,date[0]);
+  }else {
+    date = new Date();
+  }
+  var duration = document.getElementById('new-todo-duration');
+  var duration_unit = document.getElementById('new-todo-duration-unit');
+  var tag = Session.get('tag_filter');
+  Todos.insert({
+    text: task.value,
+    list_id: Session.get('list_id'),
+    done: false,
+    date: date.getTime(),
+    duration: duration.value,
+    duration_unit: duration_unit.value,
+    timestamp: (new Date()).getTime(),
+    tags: tag ? [tag] : []
+  });
+ cancel_create_task(); 
+}
+var cancel_create_task = function () {
+  console.log("cancel create");
+  var task = document.getElementById('new-todo-task');
+  var date = document.getElementById('new-todo-date');
+  var duration = document.getElementById('new-todo-duration');
+  var duration_unit = document.getElementById('new-todo-duration-unit');
+  task.value = "";
+  date.value = "";
+  duration.options[0].selected = true;
+  duration_unit.options[0].selected = true;
+
+  var hiddenDiv = document.getElementById('new-todo-hidden-div');
+  hiddenDiv.style.display = 'none';
+}
+// Template.todos.events[ okcancel_events('#new-todo-task', '#new-todo-duration') ] =
+//   make_okcancel_handler({
+//     ok: function (text, evt) {
+//       console.log("plop");
+//     }
+//   });
 
 Template.todos.todos = function () {
   // Determine which todos to display in main pane,
@@ -246,10 +288,6 @@ Template.todo_item.tag_objs = function () {
   });
 };
 Template.todo_item.date_objs = function () {
-  // var myDate1=this.date1.split("/");
-  // myDate1=new Date(2000 + parseInt(myDate1[2],10),parseInt(myDate1[1],10)-1,myDate1[0]);
-
-  // var daysLeft1 = myDate1.getTime() - (new Date()).getTime();
   var daysLeft = this.date - (new Date()).getTime();
   daysLeft = Math.ceil(daysLeft/86400000);
 
